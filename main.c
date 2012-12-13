@@ -86,7 +86,7 @@ static void do_client(int sd, FILE *fp, char *buf, size_t buf_len)
 	/* Recv! */
 	i = 0;
 	sender_len = sizeof(sender);
-	while ((ret = recvfrom(sd, buf, sizeof(buf), 0,
+	while ((ret = recvfrom(sd, buf, buf_len, 0,
 						  (struct sockaddr *)&sender, &sender_len)) >= 0)
 	{
 		fprintf(fp, "[%d] Recv %ld bytes with index %s\n",++i, ret, buf);
