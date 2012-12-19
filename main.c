@@ -64,6 +64,7 @@ static void do_server(
 			            host->ai_addr, sizeof(*host->ai_addr))),
 			-1, "sendto()");
 		fprintf(fp, "Sent %ld of %ld bytes\n", ret, buf_len);
+		fflush(NULL);
 	}
 }
 
@@ -85,26 +86,32 @@ static void do_client(int sd, FILE *fp, char *buf, size_t buf_len)
 	/* Recv! */
 	i = 0;
 	sender_len = sizeof(sender);
-	while ((ret = recvfrom(sd, buf, sizeof(buf), 0,
+	while ((ret = recvfrom(sd, buf, buf_len, 0,
 						  (struct sockaddr *)&sender, &sender_len)) >= 0)
 	{
 		fprintf(fp, "[%d] Recv %ld bytes with index %s\n",++i, ret, buf);
+		fflush(NULL);
 	}
 }
+
+/* Globals */
+FILE *global_log;
+int global_socket;
 
 void handler(int signum)
 {
 	printf("Exiting...\n");
 	fflush(NULL);
+	fclose(global_log);
+	close(global_socket);
 }
 
 int main(int argc, char **argv)
 {
-    int i, sd, n_payload, n_packets, is_server, is_client;
+    int i, n_payload, n_packets, is_server, is_client;
 	char *buf;
 	size_t buf_len;
     const char *target = NULL; /* Where to send or recv data from */
-	FILE *fp;
 
     is_server = is_client = n_packets = n_payload = 0;
 
@@ -146,7 +153,8 @@ int main(int argc, char **argv)
 	signal(SIGTERM, handler);
 
 	/* Create socket */
-    ERR(sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), -1, "socket()");
+    ERR(global_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP),
+	    -1, "socket()");
 
 	/* Buffer we send (size of the most character in the string representation
      * of INT_MAX.  This makes reading network data dumps easy.  Plus we are
@@ -157,16 +165,17 @@ int main(int argc, char **argv)
     buf = calloc(1, buf_len);
 
 	/* Create a log file to store data into */
-	ERR((fp=fopen(LOG, "w")), NULL, "fopen()");
+	ERR((global_log=fopen(LOG, "w")), NULL, "fopen()");
 
 	if (is_server)
-	  do_server(sd, fp, n_packets, target, buf, buf_len);
+	  do_server(global_socket, global_log, n_packets, target, buf, buf_len);
 	else
-	  do_client(sd, fp, buf, buf_len);
+	  do_client(global_socket, global_log, buf, buf_len);
 
+	fflush(NULL);
     free(buf);
-    close(sd);
-	fclose(fp);
+    close(global_socket);
+	fclose(global_log);
 
     return 0;
  }
