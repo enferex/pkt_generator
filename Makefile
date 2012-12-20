@@ -1,6 +1,6 @@
 APP=pkt_generator
 CC=gcc
-CFLAGS=-g3 -Wall -pedantic -std=c99
+CFLAGS=-g3 -Wall -pedantic
 
 $(APP): main.c
 	$(CC) $^ $(CFLAGS) -o $@

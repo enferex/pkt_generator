@@ -3,9 +3,9 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <net/if.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#define __USE_POSIX
 #include <netdb.h>
 
 #define MAX(_v1, _v2) ((_v1) > (_v2) ? (_v1) : (_v2))
@@ -23,12 +23,13 @@ do                              \
 
 static void usage(const char *execname)
 {
-    printf("%s address [-b bytes] [-p packets] <-s | -c>\n"
+    printf("%s address <-i iface> [-b bytes] [-p packets] <-s | -c>\n"
            "  address:    IP address/hostname of the client to send data to\n"
-           "  -b bytes:   Maxmimum payload size\n"
-           "  -p packets: Number of packets to send\n"
-		   "  -s server:  Send packets\n"
-		   "  -c client:  Recv packets (-b -p options are ignored)\n",
+		   "  -i interface: Interface name (e.g. eth0)\n"
+           "  -b bytes:     Maxmimum payload size\n"
+           "  -p packets:   Number of packets to send\n"
+		   "  -s server:    Send packets\n"
+		   "  -c client:    Recv packets (-b -p options are ignored)\n",
            execname);
     exit(EXIT_SUCCESS);
 }
@@ -111,6 +112,8 @@ int main(int argc, char **argv)
     int i, n_payload, n_packets, is_server, is_client;
 	char *buf;
 	size_t buf_len;
+	struct ifreq ifr;
+	const char *iface = NULL;
     const char *target = NULL; /* Where to send or recv data from */
 
     is_server = is_client = n_packets = n_payload = 0;
@@ -121,6 +124,8 @@ int main(int argc, char **argv)
           n_payload = atoi(argv[++i]);
         else if (strncmp("-p", argv[i], 2) == 0 && (i+1 < argc))
           n_packets = atoi(argv[++i]);
+        else if (strncmp("-i", argv[i], 2) == 0 && (i+1 < argc))
+          iface = argv[++i];
         else if (argv[i][0] != '-')
           target = argv[i];
         else if (strncmp("-s", argv[i], 2) == 0)
@@ -136,6 +141,14 @@ int main(int argc, char **argv)
 		printf("Please choose server or client mode\n");
 		usage(argv[0]);
 	}
+
+	if (!iface)
+	{
+		printf("Please specify an interface to use\n");
+		usage(argv[0]);
+	}
+	
+	printf("Using interface: %s\n", iface);
 
 	if (is_server)
 	{
@@ -155,6 +168,13 @@ int main(int argc, char **argv)
 	/* Create socket */
     ERR(global_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP),
 	    -1, "socket()");
+
+	/* Bind socket to specific interface */
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, iface, sizeof(ifr.ifr_name)-1);
+	ERR(setsockopt(global_socket, SOL_SOCKET, SO_BINDTODEVICE,
+				   (void *)&ifr, sizeof(ifr)),
+		-1, "setsockopt(): Binding to device");
 
 	/* Buffer we send (size of the most character in the string representation
      * of INT_MAX.  This makes reading network data dumps easy.  Plus we are
