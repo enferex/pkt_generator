@@ -17,6 +17,6 @@ mkdir -p $dir
 trap "echo hi" SIGINT
 
 sudo ethtool -S $dev > $dir/$dev.before;
-./pkt_generator -c -b $pktsize
+./pkt_generator -c -i $dev -b $pktsize
 sudo ethtool -S $dev > $dir/$dev.after
 mv pkt_generator.log $dir/${host}_recv.log
