@@ -16,6 +16,6 @@ echo "Creating directory $dir..."
 mkdir -p $dir
 
 sudo ethtool -S $dev > $dir/$dev.before
-./pkt_generator -s $host -p $npkts -b $pktsize 
+./pkt_generator -s $host -i $dev -p $npkts -b $pktsize 
 sudo ethtool -S $dev > $dir/$dev.after
 mv pkt_generator.log $dir/send_to_${host}.log
