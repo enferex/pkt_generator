@@ -1,0 +1,11 @@
+These scripts make using the pkt_generator tool a bit simpler for conducting
+tests.
+
+'client.sh': Runs a client version of pkt_generator (ctrl-C) to safely exit
+'server.sh': Runs a server version of pkt_generator
+
+Both store sending and receiving data (ifconfig and ethtool) data in the
+resulting test directory to verify if the kernel or driver is handling the
+packets that are to be sent/received.
+
+Tests are named based on specified number of packets to send and payload length.
