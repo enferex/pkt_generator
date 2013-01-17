@@ -1,0 +1,23 @@
+pkt_generator: Packet Generator
+===============================
+Simple UDP client/server to send incrementing integer values as strings.
+
+What?
+=====
+This program acts as either a sender or receiver sending or receiving UDP
+packets of (specified length) with a text string representing a monotonically
+increasing value (a counter).  If the length is too small (or zero) then the
+minum payload is sent.  Else, the payload (the string representation of the
+counter) and a buffer of zeros is sent.
+
+For example, if 10 packets are sent, strings "1" to "10" are the payload for
+packets 1 to 10 respectively.  Strings instead of binary values makes parsing
+with `tcpdump -X' pretty trivial.
+
+This program operates on port 6666 (not quite the beast).
+
+Receive or sending information is output to a file 'pkt_generator.log'
+
+Contact
+=======
+mattdavis9@gmail.com
