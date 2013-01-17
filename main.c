@@ -1,3 +1,22 @@
+/******************************************************************************
+ * main.c
+ * For the `pkt_generator' program.
+ *
+ * This program acts as either a sender or receiver sending or receiving UDP packets of
+ * (specified length) with a text string representing a monotonically increasing
+ * value (a counter).  
+ *
+ * This operates on port 6666 (not quite the beast).
+ *
+ * For example, if 10 packets are sent, strings "1" to "10" are the payload for
+ * packets 1 to 10 respectively.  Strings instead of binary values makes parsing
+ * with `tcpdump -X' pretty trivial.
+ *
+ * Receive or sending information is output to a file 'pkt_generator.log'
+ *
+ * mattdavis9@gmail.com
+ *****************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -26,7 +45,7 @@ static void usage(const char *execname)
     printf("%s address <-i iface> [-b bytes] [-p packets] <-s | -c>\n"
            "  address:    IP address/hostname of the client to send data to\n"
 		   "  -i interface: Interface name (e.g. eth0)\n"
-           "  -b bytes:     Maxmimum payload size\n"
+           "  -b bytes:     Maximum payload size\n"
            "  -p packets:   Number of packets to send\n"
 		   "  -s server:    Send packets\n"
 		   "  -c client:    Recv packets (-b -p options are ignored)\n",
@@ -34,6 +53,7 @@ static void usage(const char *execname)
     exit(EXIT_SUCCESS);
 }
 
+/* Send a series of UDP packets */
 static void do_server(
 	int 		sd,
 	FILE       *fp,
@@ -69,6 +89,7 @@ static void do_server(
 	}
 }
 
+/* Listen for packets */
 static void do_client(int sd, FILE *fp, char *buf, size_t buf_len)
 {
 	int i;
@@ -198,4 +219,4 @@ int main(int argc, char **argv)
 	fclose(global_log);
 
     return 0;
- }
+}
