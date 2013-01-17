@@ -14,9 +14,18 @@ dir=tests/recv/${npkts}p_${pktsize}b/
 echo "Creating directory $dir..."
 mkdir -p $dir
 
-trap "echo hi" SIGINT
+trap "echo " SIGINT
 
-sudo ethtool -S $dev > $dir/$dev.before;
+# Before test
+sudo ethtool -S $dev > $dir/ethtool.before
+sudo ifconfig $dev   > $dir/ifconfig.before
+
+# Test
 ./pkt_generator -c -i $dev -b $pktsize
-sudo ethtool -S $dev > $dir/$dev.after
+
+# After test
+sudo ethtool -S $dev    > $dir/ethtool.after
+sudo ifconfig $dev      > $dir/ifconfig.after
+wc -l pkt_generator.log > $dir/userland_recv.count
+
 mv pkt_generator.log $dir/${host}_recv.log
