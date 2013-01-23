@@ -124,7 +124,7 @@ static void do_client(int sd, FILE *fp, char *buf, size_t buf_len)
 
 /* Globals */
 FILE *global_log;
-int global_socket;a
+int global_socket;
 
 
 void handler(int signum)
